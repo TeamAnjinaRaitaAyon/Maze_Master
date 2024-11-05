@@ -205,7 +205,7 @@ class MazeGame:
                 f_diagonal = g_value + h_diagonal
 
                 # Create a frame for each cell
-                cell_frame = tk.Frame(self.cost_grid_frame, width=200, height=100, relief='solid', borderwidth=1)
+                cell_frame = tk.Frame(self.cost_grid_frame, width=500, height=100, relief='solid', borderwidth=1)
                 cell_frame.grid(row=i, column=j, padx=2, pady=2)
 
                 label = tk.Label(cell_frame, text=f"g(n): {g_value:.1f}\n[man] h(n): {h_manhattan:.1f}\n[man] f(n): {f_manhattan:.1f}\n[dia] h(n): {h_diagonal:.1f}\n[dia] f(n): {f_diagonal:.1f}", anchor='center')
@@ -220,12 +220,16 @@ class MazeGame:
                                           (x + 1) * self.cell_size, (y + 1) * self.cell_size,
                                           outline="black", fill="black")
 
+
+
     def a_star_search(self, grid, src, dest):
+        start_time = time.time()  # Start time before function execution
+
         if not self.is_valid(src[0], src[1]) or not self.is_valid(dest[0], dest[1]):
             self.display_message("Source or destination is invalid")
             return
 
-        if not self.is_unblocked(grid, src[0], src[1]) or not self.is_unblocked(grid, dest[0], dest[1]):
+        if not self.is_unblocked(grid, src[0], src[1]) or not self.is_unblocked(grid, dest[0], dest [1]):
             self.display_message("Source or the destination is blocked")
             return
 
@@ -249,6 +253,7 @@ class MazeGame:
         found_dest = False
 
         while len(open_list) > 0:
+
             p = heapq.heappop(open_list)
 
             i = p[1]
@@ -256,20 +261,22 @@ class MazeGame:
             closed_list[i][j] = True
 
             directions = [
-    (0, 1), (0, -1), (1, 0), (-1, 0),  # Vertical and horizontal
-    (1, 1), (1, -1), (-1, 1), (-1, -1)  # Diagonal movements
-]
+                (0, 1), (0, -1), (1, 0), (-1, 0),  # Vertical and horizontal
+                (1, 1), (1, -1), (-1, 1), (-1, -1)  # Diagonal movements
+            ]
 
             for dir in directions:
                 new_i = i + dir[0]
                 new_j = j + dir[1]
 
-                if self.is_valid(new_i, new_j) and self.is_unblocked(grid, new_i, new_j) and not closed_list[new_i][new_j]:
+                if self.is_valid(new_i, new_j) and self.is_unblocked(grid, new_i, new_j) and not    closed_list[new_i][new_j]:
                     if self.is_destination(new_i, new_j, dest):
                         cell_details[new_i][new_j].parent_i = i
                         cell_details[new_i][new_j].parent_j = j
                         found_dest = True
                         self.draw_cost_grid(cell_details)  # Draw cost grid before returning
+                        end_time = time.time()  # End time after path is found
+                        self.display_message(f'Time Taken By The Agent: {abs(start_time - end_time)     *100} ms')
                         return self.trace_path(cell_details, dest)
 
                     g_new = math.sqrt((new_i - dest[0]) ** 2 + (new_j - dest[1]) ** 2)
@@ -278,7 +285,7 @@ class MazeGame:
 
                     # Choosing the minimum h value
                     h_new = min(h_manhattan, h_diagonal)
-                    
+
                     f_new = g_new + h_new
 
                     if cell_details[new_i][new_j].f == float('inf') or cell_details[new_i][new_j].f > f_new:
@@ -288,10 +295,14 @@ class MazeGame:
                         cell_details[new_i][new_j].h = h_new
                         cell_details[new_i][new_j].parent_i = i
                         cell_details[new_i][new_j].parent_j = j
-
+    
         if not found_dest:
             self.display_message("Failed to find the destination cell")
             self.draw_cost_grid(cell_details)  # Draw cost grid if no path found
+
+        end_time = time.time()  # End time if no path is found
+        self.display_message(f'Time Taken By The Agent: {abs(start_time - end_time) *10} ms')
+
 
     def is_valid(self, row, col):
         return (0 <= row < self.grid_size[0]) and (0 <= col < self.grid_size[1])
@@ -362,11 +373,8 @@ class MazeGame:
 
 
     def find_path(self):
-        start_time= time.time()
         grid = [[1 if (i, j) not in self.obstacles else 0 for j in range(self.grid_size[1])] for i in range(self.grid_size[0])]
         self.a_star_search(grid, self.start, self.goal)
-        end_time=time.time()
-        self.display_message(f'Time Taken By StickMan : {abs(start_time-end_time)}')
 
     def restart_game(self):
         self.canvas.destroy()
